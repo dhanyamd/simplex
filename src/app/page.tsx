@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import { motion, AnimatePresence } from 'framer-motion';
 import remarkGfm from 'remark-gfm'; 
 import { Message, SearchResult, ChatSection,SuggestionType, TavilyImage,TavilyResponse } from '@/types/interface';
+import { TopBar } from '@/components/TopBar';
 
 export default function SimplexPage() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -204,9 +205,109 @@ export default function SimplexPage() {
       };
       return updated;
     });
-    } catch (error) {
-      
+    } catch (error : unknown) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('Request was aborted');
+      } else {
+        const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+        console.error('Error:', error);
+        setError(errorMessage);
+        setChatSections(prev => {
+          const updated = [...prev];
+          updated[sectionIndex] = {
+            ...updated[sectionIndex],
+            error: errorMessage,
+            isLoadingSources: false,
+            isLoadingThinking: false
+          };
+          return updated;
+        });
+      }
+    } finally {
+      setIsLoading(false);
+      setSearchStatus('');
+      abortControllerRef.current = null;
     }
   }
+  const toggleReasoning = (index: number) => {
+    setChatSections(prev => {
+      const updated = [...prev];
+      updated[index] = {
+        ...updated[index],
+        isReasoningCollapsed: !updated[index].isReasoningCollapsed
+      };
+      return updated;
+    });
+  };
+ return (
+<div className='min-h-screen bg-white'>
+<TopBar />
+<div className='pt-14 pb-24'>
+<main className='max-w-3xl mx-auto p-8'>
+<AnimatePresence>
+  {!hasSubmitted ? (
+    <motion.div 
+    className='min-h-screen flex flex-col items-center justify-center'
+    initial={{ opacity: 1 }}
+    exit={{opacity: 0, y:-50}}
+    transition={{duration: 0.3}}
+    >
+      <div className="text-center mb-12">
+                  <div className="inline-block px-4 py-1.5 bg-gray-900 text-white rounded-full text-sm font-medium mb-6">
+                    
+                  </div>
+                  <h1 className="text-5xl font-serif text-gray-900 mb-4 tracking-tight">Your Personal Research Assistant</h1>
+                  <p className="text-xl text-gray-600 font-light max-w-2xl mx-auto leading-relaxed">
+                    Do research for content in seconds, so you can spend more time going viral.
+                  </p>
+                </div>
+                <form onSubmit={handleSubmit} className="w-full max-w-[704px] mx-4">
+                  <div className="relative bg-gray-50 rounded-xl shadow-md border border-gray-300">
+                    <textarea
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      placeholder="Ask a question..."
+                      className="w-full p-5 pr-32 rounded-xl border-2 border-transparent focus:border-gray-900 focus:shadow-lg focus:outline-none resize-none h-[92px] bg-gray-50 transition-all duration-200"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSubmit(e);
+                        }
+                      }}
+                    />
+                    <div className="absolute right-3 bottom-3 flex items-center gap-2">
+                      <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="px-6 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium relative overflow-hidden group"
+                      >
+                        <span className="relative z-10">{isLoading ? 'Thinking...' : 'Send'}</span>
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:via-white/15 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                      </button>
+                    </div>
+                  </div>
+                  
 
-}
+                  <div className="mt-4 flex flex-wrap gap-2 justify-center">
+                    {suggestions.map((suggestion) => (
+                      <button
+                        key={suggestion.label}
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                          selectedSuggestion === suggestion.label
+                            ? 'bg-gray-900 text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        {suggestion.label}
+                      </button>
+                    ))}
+                  </div>
+                </form>
+    </motion.div>
+  ) : ''}
+</AnimatePresence>
+</main>
+</div>
+</div>
+ )}
