@@ -69,88 +69,95 @@ export default function SimplexPage() {
     const sectionIndex = chatSections.length;
 
     try {
-      const searchResponse = await fetch('/api/tavilly', {
+      const searchResponse = await fetch('/api/tavily', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json'},
-        body: JSON.stringify({
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
           query: input,
           includeImages: true,
-          includeImagesDescription: true
+          includeImageDescriptions: true
         }),
-        signal: abortControllerRef.current.signal
-      })
-      const searchData = await searchResponse.json()
+        signal: abortControllerRef.current.signal,
+      });
 
-      if(!searchResponse.ok) {
+      const searchData = await searchResponse.json();
+      
+      if (!searchResponse.ok) {
         throw new Error(searchData.error || 'Failed to fetch search results');
       }
+
       if (!searchData.results || searchData.results.length === 0) {
         throw new Error('No relevant search results found. Please try a different query.');
       }
-      //combine images with result 
+
+      // Combine images with results
       const resultsWithImages = searchData.results.map((result: SearchResult, index: number) => ({
         ...result,
         image: searchData.images?.[index]
       }));
-     //update section with search results and start thinking 
-     setChatSections(prev => {
-      const updated = [...prev];
-      updated[sectionIndex] = {
-        ...updated[sectionIndex],
-        searchResults: resultsWithImages ,
-        isLoadingSources: false,
-        isLoadingThinking: true 
+
+      // Update section with search results and start thinking
+      setChatSections(prev => {
+        const updated = [...prev];
+        updated[sectionIndex] = {
+          ...updated[sectionIndex],
+          searchResults: resultsWithImages,
+          isLoadingSources: false,
+          isLoadingThinking: true
+        };
+        return updated;
+      });
+
+      // Step 2: Format search results for DeepSeek
+      const searchContext = resultsWithImages
+        .map((result: SearchResult, index: number) => 
+          `[Source ${index + 1}]: ${result.title}\n${result.content}\nURL: ${result.url}\n`
+        )
+        .join('\n\n');
+
+      const tavilyAnswer = searchData.answer 
+        ? `\nTavily's Direct Answer: ${searchData.answer}\n\n` 
+        : '';
+
+      // Add sources table at the end
+      const sourcesTable = `\n\n## Sources\n| Number | Source | Description |\n|---------|---------|-------------|\n` +
+        resultsWithImages.map((result: SearchResult, index: number) => 
+          `| ${index + 1} | [${result.title}](${result.url}) | ${result.snippet || result.content.slice(0, 150)}${result.content.length > 150 ? '...' : ''} |`
+        ).join('\n');
+
+      const reasoningInput = `Here is the research data:${tavilyAnswer}\n${searchContext}\n\nPlease analyze this information and create a detailed report addressing the original query: "${input}". Include citations to the sources where appropriate. If the sources contain any potential biases or conflicting information, please note that in your analysis.\n\nIMPORTANT: Always end your response with a sources table listing all references used. Format it exactly as shown below:\n${sourcesTable}`;
+
+      let assistantMessage: Message = {
+        role: 'assistant',
+        content: '',
+        reasoning: '',
+        searchResults: resultsWithImages,
+        fullTavilyData: searchData,
+        reasoningInput
       };
-      return updated;
-     })
-     
-     //Step 2: Format search results for Deepseek 
-     const searchContext = resultsWithImages 
-            .map((result: SearchResult, index: number) => 
-              `[Source ${index + 1}]: ${result.title}\n${result.content}\nURL: ${result.url}\n`
-            )
-            .join('\n\n');
 
-    const tavilyAnswer = searchData.answer 
-    ? `\nTavily's Direct Answer: ${searchData.answer}\n\n` 
-    : '';
+      // Step 3: Get analysis from DeepSeek
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: [
+          userMessage,
+          {
+            role: 'assistant' as const,
+            content: 'I found some relevant information. Let me analyze it and create a comprehensive report.',
+          },
+          {
+            role: 'user' as const,
+            content: reasoningInput,
+          },
+        ] }),
+        signal: abortControllerRef.current.signal,
+      });
 
-    // Add sources table at the end
-    const sourcesTable = `\n\n## Sources\n| Number | Source | Description |\n|---------|---------|-------------|\n` +
-    resultsWithImages.map((result: SearchResult, index: number) => 
-      `| ${index + 1} | [${result.title}](${result.url}) | ${result.snippet || result.content.slice(0, 150)}${result.content.length > 150 ? '...' : ''} |`
-    ).join('\n');
-    const reasoningInput = `Here is the research data:${tavilyAnswer}\n${searchContext}\n\nPlease analyze this information and create a detailed report addressing the original query: "${input}". Include citations to the sources where appropriate. If the sources contain any potential biases or conflicting information, please note that in your analysis.\n\nIMPORTANT: Always end your response with a sources table listing all references used. Format it exactly as shown below:\n${sourcesTable}`;
-   
-    let assistantMessage: Message = {
-      role: 'assistant',
-      content: '',
-      reasoning: '',
-      searchResults: resultsWithImages,
-      fullTavilyData: searchData,
-      reasoningInput
-    };
-    
-    //get analysis  from Deepseek 
-    const response = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ messages: [
-        userMessage,
-        {
-          role: 'assistant' as const,
-          content: 'I found some relevant information. Let me analyze it and create a comprehensive report.',
-        },
-        {
-          role: 'user' as const,
-          content: reasoningInput,
-        },
-      ]}),
-      signal: abortControllerRef.current.signal
-    });
-    if (!response.ok) {
-      throw new Error('Failed to generate report. Please try again.');
-    }
+      if (!response.ok) {
+        throw new Error('Failed to generate report. Please try again.');
+      }
+
 
     const reader = response.body?.getReader();
     if (!reader) throw new Error('No reader available');
@@ -240,7 +247,7 @@ export default function SimplexPage() {
     });
   };
  return (
-<div className='min-h-screen bg-white dark:text-white'>
+<div className='min-h-screen bg-white'>
 <TopBar />
 <div className='pt-14 pb-24'>
 <main className='max-w-3xl mx-auto p-8'>
