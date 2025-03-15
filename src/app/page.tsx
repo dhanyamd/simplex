@@ -1,13 +1,66 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { motion, AnimatePresence } from 'framer-motion';
-import remarkGfm from 'remark-gfm'; 
-import { Message, SearchResult, ChatSection,SuggestionType, TavilyImage,TavilyResponse } from '@/types/interface';
-import { TopBar } from '@/components/TopBar';
+import remarkGfm from 'remark-gfm';
 
-export default function SimplexPage() {
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+  reasoning?: string;
+  searchResults?: SearchResult[];
+  fullTavilyData?: TavilyResponse;
+  reasoningInput?: string;
+}
+
+interface TavilyImage {
+  url: string;
+  description?: string;
+}
+
+interface SearchResult {
+  title: string;
+  content: string;
+  url: string;
+  snippet?: string;
+  score?: number;
+  image?: TavilyImage;
+}
+
+interface TavilyResponse {
+  results: SearchResult[];
+  images?: TavilyImage[];
+  answer?: string;
+  query?: string;
+}
+
+interface ChatSection {
+  query: string;
+  searchResults: SearchResult[];
+  reasoning: string;
+  response: string;
+  error?: string | null;
+  isLoadingSources?: boolean;
+  isLoadingThinking?: boolean;
+  isReasoningCollapsed?: boolean;
+}
+
+interface SuggestionType {
+  label: string;
+  prefix: string;
+}
+
+// Add TopBar component
+const TopBar = () => {
+  return (
+    <div className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 flex items-center px-6 z-50">
+      <h1 className="text-2xl font-serif text-gray-900 tracking-tight">Simplex</h1>
+    </div>
+  );
+};
+
+export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [lastQuery, setLastQuery] = useState('');
@@ -25,10 +78,10 @@ export default function SimplexPage() {
   const [selectedSuggestion, setSelectedSuggestion] = useState<string | null>(null);
   
   const suggestions: SuggestionType[] = [
-    { label: "Blog Post Ideas", prefix: "Generate blog post ideas about: " },
-  { label: "Social Media Post Captions", prefix: "Write engaging social media captions for: " },
-  { label: "Email Subject Lines", prefix: "Create compelling email subject lines for: " },
-  { label: "Presentation Outline", prefix: "Develop a presentation outline about: " },
+    { label: "Podcast Outline", prefix: "Create a detailed podcast outline for: " },
+    { label: "YouTube Video Research", prefix: "Research and outline a YouTube video about: " },
+    { label: "Short Form Hook Ideas", prefix: "Generate engaging hook ideas for short-form content about: " },
+    { label: "Newsletter Draft", prefix: "Write a newsletter draft about: " }
   ];
 
   const handleSuggestionClick = (suggestion: SuggestionType) => {
@@ -37,25 +90,27 @@ export default function SimplexPage() {
       setInput(suggestion.prefix + input);
     }
   };
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!input.trim() || isLoading) return
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
 
-    setHasSubmitted(true)
-    setLastQuery(input)
-    setError(null)
-    setCurrentSearchResults([])
-    if(abortControllerRef.current) {
-      abortControllerRef.current.abort()
+    setHasSubmitted(true);
+    setLastQuery(input);
+    setError(null);
+    setCurrentSearchResults([]);
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
     }
-    abortControllerRef.current = new AbortController()
-    const userMessage = { role: 'user' as const, content: input}
-    setMessages(prev => [...prev, userMessage])
-    setIsLoading(true)
-    setCurrentReasoning('')
+    abortControllerRef.current = new AbortController();
 
-    //creating new chat section with loading states
+    const userMessage = { role: 'user' as const, content: input };
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setIsLoading(true);
+    setCurrentReasoning('');
+
+    // Create a new chat section with loading states
     const newSection: ChatSection = {
       query: input,
       searchResults: [],
@@ -63,24 +118,25 @@ export default function SimplexPage() {
       response: '',
       error: null,
       isLoadingSources: true,
-      isLoadingThinking: false
-    }
+      isLoadingThinking: false 
+    };
     setChatSections(prev => [...prev, newSection]);
     const sectionIndex = chatSections.length;
 
     try {
+      // Step 1: Search with Tavily
       const searchResponse = await fetch('/api/tavily', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           query: input,
-          includeImages: true,
-          includeImageDescriptions: true
+          include_images: true,
+          include_image_descriptions: true
         }),
         signal: abortControllerRef.current.signal,
       });
 
-      const searchData = await searchResponse.json();
+      const searchData = await searchResponse.json()
       
       if (!searchResponse.ok) {
         throw new Error(searchData.error || 'Failed to fetch search results');
@@ -103,8 +159,9 @@ export default function SimplexPage() {
           ...updated[sectionIndex],
           searchResults: resultsWithImages,
           isLoadingSources: false,
-          isLoadingThinking: true
+          isLoadingThinking: true 
         };
+        
         return updated;
       });
 
@@ -134,8 +191,9 @@ export default function SimplexPage() {
         searchResults: resultsWithImages,
         fullTavilyData: searchData,
         reasoningInput
-      };
+      }
 
+    
       // Step 3: Get analysis from DeepSeek
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -144,9 +202,8 @@ export default function SimplexPage() {
           userMessage,
           {
             role: 'assistant' as const,
-            content: 'I found some relevant information. Let me analyze it and create a comprehensive report.',
-          },
-          {
+            content: 'I found some relevant information. Let me analyze it and create a comprehensive report.'},
+      {
             role: 'user' as const,
             content: reasoningInput,
           },
@@ -158,61 +215,60 @@ export default function SimplexPage() {
         throw new Error('Failed to generate report. Please try again.');
       }
 
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No reader available');
 
-    const reader = response.body?.getReader();
-    if (!reader) throw new Error('No reader available');
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+        const chunk = new TextDecoder().decode(value);
+        const lines = chunk.split('\n').filter(line => line.trim());
 
-      const chunk = new TextDecoder().decode(value);
-      const lines = chunk.split('\n').filter(line => line.trim())
-      
-      for (const line of lines) {
-        try {
-          const parsed = JSON.parse(line);
-          if (parsed.choices?.[0]?.delta?.reasoning_content) {
-            const newReasoning = (assistantMessage.reasoning || '') + parsed.choices[0].delta.reasoning_content;
-            assistantMessage.reasoning = newReasoning;
-            setCurrentReasoning(newReasoning);
-            setChatSections(prev => {
-              const updated = [...prev];
-              updated[sectionIndex] = {
-                ...updated[sectionIndex],
-                reasoning: newReasoning,
-                isLoadingThinking: false
-              };
-              return updated;
-            });
-          } else if (parsed.choices?.[0]?.delta?.content) {
-            const newContent = (assistantMessage.content || '') + parsed.choices[0].delta.content;
-            assistantMessage.content = newContent;
-            setChatSections(prev => {
-              const updated = [...prev];
-              updated[sectionIndex] = {
-                ...updated[sectionIndex],
-                response: newContent
-              };
-              return updated;
-            });
+        for (const line of lines) {
+          try {
+            const parsed = JSON.parse(line);
+            if (parsed.choices?.[0]?.delta?.reasoning_content) {
+              const newReasoning = (assistantMessage.reasoning || '') + parsed.choices[0].delta.reasoning_content;
+              assistantMessage.reasoning = newReasoning;
+              setCurrentReasoning(newReasoning);
+              setChatSections(prev => {
+                const updated = [...prev];
+                updated[sectionIndex] = {
+                  ...updated[sectionIndex],
+                  reasoning: newReasoning,
+                  isLoadingThinking: false
+                };
+                return updated;
+              });
+            } else if (parsed.choices?.[0]?.delta?.content) {
+              const newContent = (assistantMessage.content || '') + parsed.choices[0].delta.content;
+              assistantMessage.content = newContent;
+              setChatSections(prev => {
+                const updated = [...prev];
+                updated[sectionIndex] = {
+                  ...updated[sectionIndex],
+                  response: newContent
+                };
+                return updated;
+              });
+            }
+          } catch (e) {
+            console.error('Error parsing chunk:', e);
           }
-        } catch (e) {
-          console.error('Error parsing chunk:', e);
         }
       }
-    }
 
-    // Update the section with search results
-    setChatSections(prev => {
-      const updated = [...prev];
-      updated[sectionIndex] = {
-        ...updated[sectionIndex],
-        searchResults: resultsWithImages
-      };
-      return updated;
-    });
-    } catch (error : unknown) {
+      // Update the section with search results
+      setChatSections(prev => {
+        const updated = [...prev];
+        updated[sectionIndex] = {
+          ...updated[sectionIndex],
+          searchResults: resultsWithImages
+        };
+        return updated;
+      });
+    } catch (error: unknown) {
       if (error instanceof Error && error.name === 'AbortError') {
         console.log('Request was aborted');
       } else {
@@ -235,7 +291,8 @@ export default function SimplexPage() {
       setSearchStatus('');
       abortControllerRef.current = null;
     }
-  }
+  };
+
   const toggleReasoning = (index: number) => {
     setChatSections(prev => {
       const updated = [...prev];
@@ -246,26 +303,26 @@ export default function SimplexPage() {
       return updated;
     });
   };
- return (
-<div className='min-h-screen bg-white'>
-<TopBar />
-<div className='pt-14 pb-24'>
-<main className='max-w-3xl mx-auto p-8'>
-<AnimatePresence>
-  {!hasSubmitted ? (
-    <motion.div 
-    className='min-h-screen flex flex-col items-center justify-center'
-    initial={{ opacity: 1 }}
-    exit={{opacity: 0, y:-50}}
-    transition={{duration: 0.3}}
-    >
-      <div className="text-center mb-12">
-                  <div className="inline-block px-4 py-1.5  bg-gray-900 text-white rounded-full text-sm font-medium mb-6">
-                    hello friend :)
-                  </div>
-                  <h1 className="text-3xl font-serif text-black mb-2 tracking-tight">Im your Accelerated Research Partner.</h1>
-                  <p className="text-md text-fuchsia-500 font-light max-w-xk mx-auto leading-relaxed">
-                  Curious about something? Tell us what you want to research.                    </p>
+
+  return (
+    <div className="min-h-screen bg-white">
+      <TopBar />
+      <div className="pt-14 pb-24"> {/* Add padding top to account for fixed header */}
+        <main className="max-w-3xl mx-auto p-8">
+          <AnimatePresence>
+            {!hasSubmitted ? (
+              <motion.div 
+                className="min-h-screen flex flex-col items-center justify-center"
+                initial={{ opacity: 1 }}
+                exit={{ opacity: 0, y: -50 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="text-center mb-12">
+                  
+                  <h1 className="text-5xl font-serif text-gray-900 mb-4 tracking-tight">Your AI Powered Content Research Assistant</h1>
+                  <p className="text-xl text-gray-600 font-light max-w-2xl mx-auto leading-relaxed">
+                    Do research for content in seconds, so you can spend more time going viral.
+                  </p>
                 </div>
                 <form onSubmit={handleSubmit} className="w-full max-w-[704px] mx-4">
                   <div className="relative bg-gray-50 rounded-xl shadow-md border border-gray-300">
@@ -293,7 +350,7 @@ export default function SimplexPage() {
                     </div>
                   </div>
                   
-
+                  {/* Suggestions */}
                   <div className="mt-4 flex flex-wrap gap-2 justify-center">
                     {suggestions.map((suggestion) => (
                       <button
@@ -310,9 +367,9 @@ export default function SimplexPage() {
                     ))}
                   </div>
                 </form>
-    </motion.div>
-  ) : (
-  <motion.div 
+              </motion.div>
+            ) : (
+              <motion.div 
                 className="space-y-6 pb-32"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -360,8 +417,9 @@ export default function SimplexPage() {
                         </motion.div>
                       </div>
                     )}
- {/* Sources Loading State */}
- {section.isLoadingSources && (
+
+                    {/* Sources Loading State */}
+                    {section.isLoadingSources && (
                       <div className="mb-12 animate-pulse">
                         <div className="flex items-center gap-2 mb-4">
                           <div className="w-5 h-5 bg-gray-200 rounded" />
@@ -385,7 +443,7 @@ export default function SimplexPage() {
                         </div>
                       </div>
                     )}
-                    
+
                     {/* Search Results */}
                     {section.searchResults.length > 0 && (
                       <div className="mb-12">
@@ -454,8 +512,9 @@ export default function SimplexPage() {
                         </div>
                       </div>
                     )}
-                      {/* Thinking Process Loading State */}
-                      {section.isLoadingThinking && (
+
+                    {/* Thinking Process Loading State */}
+                    {section.isLoadingThinking==true && (
                       <div className="mb-12">
                         <div className="flex items-center gap-2 mb-4">
                           <div className="w-5 h-5 bg-gray-200 rounded" />
@@ -470,6 +529,7 @@ export default function SimplexPage() {
                         </div>
                       </div>
                     )}
+
                     {/* Thinking Process */}
                     {section.reasoning && (
                       <div className="mb-12">
@@ -522,9 +582,10 @@ export default function SimplexPage() {
                           </div>
                         </motion.div>
                       </div>
-                    )} 
-               {/* Final Report */}
-               {section.response && (
+                    )}
+
+                    {/* Final Report */}
+                    {section.response && (
                       <div className="mt-12 mb-16">
                         <div className="prose prose-blue max-w-none space-y-4 text-gray-800 [&>ul]:list-disc [&>ul]:pl-6 [&>ol]:list-decimal [&>ol]:pl-6">
                           <ReactMarkdown
@@ -586,6 +647,7 @@ export default function SimplexPage() {
                                   const data = rows.slice(2).map(row => 
                                     row.split('|').filter(Boolean).map(cell => cell.trim())
                                   );
+
                                   return (
                                     <div className="my-8 overflow-x-auto">
                                       <table className="w-full text-left border-collapse border border-gray-200">
@@ -652,7 +714,8 @@ export default function SimplexPage() {
                         </div>
                       </div>
                     )}
-   {section.error && (
+
+                    {section.error && (
                       <div className="text-center text-red-600 mb-8">
                         {section.error}
                       </div>
@@ -660,11 +723,12 @@ export default function SimplexPage() {
                   </div>
                 ))}
               </motion.div>
-                 )}
+            )}
           </AnimatePresence>
         </main>
       </div>
 
+      {/* Updated floating input box styling - show immediately after first submission */}
       {hasSubmitted && (
         <div className="fixed bottom-6 left-0 right-0 flex justify-center">
           <form onSubmit={handleSubmit} className="w-full max-w-[704px] mx-4">
@@ -740,4 +804,5 @@ export default function SimplexPage() {
         </div>
       )}
     </div>
-)}
+  );
+}

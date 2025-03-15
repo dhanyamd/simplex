@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 
-const DEEPSEEK_API_KEY=process.env.DEEPSEEK_API_KEY;
-const DEEPSEEK_API_URL='https://api.deepseek.com/chat/completions';
+const GEMINI_API_KEY=process.env.GEMINI_API_KEY
+//const DEEPSEEK_API_URL='https://api.deepseek.com/chat/completions';
 
-if (!DEEPSEEK_API_KEY) {
-  throw new Error('DEEPSEEK_API_KEY is not set in environment variables');
+if (!GEMINI_API_KEY) {
+  throw new Error('GEMMA_API_KEY is not set in environment variables');
 }
 
 // Set response timeout to 30 seconds
@@ -18,15 +18,15 @@ export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
 
-    const response = await fetch(DEEPSEEK_API_URL, {
-      method: 'POST',
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions",{
+      method: "POST",
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+        'Authorization': `Bearer ${GEMINI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'deepseek-reasoner',
-        messages,
+        model: "google/gemini-2.0-flash-thinking-exp-1219:free",
+        messages: messages,
         stream: true,
         max_tokens: 4000,
         temperature: 0.7,
@@ -34,8 +34,13 @@ export async function POST(req: Request) {
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to get response from DeepSeek');
+      const errorText = await response.text(); // Get the raw response text
+      console.error('OpenRouter API Error Response:', {
+        status: response.status,
+        statusText: response.statusText,
+        errorText,
+      });
+      throw new Error(`Failed to get response from OpenRouter: ${errorText}`);
     }
 
     if (!response.body) {
@@ -68,7 +73,6 @@ export async function POST(req: Request) {
               if (line.startsWith('data: ')) {
                 data = line.slice(6);
               }
-
               try {
                 const parsed = JSON.parse(data);
                 controller.enqueue(encoder.encode(JSON.stringify(parsed) + '\n'));
