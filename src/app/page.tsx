@@ -55,7 +55,7 @@ interface SuggestionType {
 const TopBar = () => {
   return (
     <div className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 flex items-center px-6 z-50">
-      <h1 className="text-2xl font-serif text-gray-900 tracking-tight">Simplex</h1>
+      <h1 className="text-2xl font-mono text-[#782dd4] tracking-tight">&#10022; Simplex </h1>
     </div>
   );
 };
@@ -317,11 +317,11 @@ export default function Home() {
                 exit={{ opacity: 0, y: -50 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className="text-center mb-12">
-                  
-                  <h1 className="text-5xl font-serif text-gray-900 mb-4 tracking-tight">Your AI Powered Content Research Assistant</h1>
-                  <p className="text-xl text-gray-600 font-light max-w-2xl mx-auto leading-relaxed">
-                    Do research for content in seconds, so you can spend more time going viral.
+                <div className="text-center mb-12 text-emerald-700">
+                  <p className='text-sm pb-4'>welcome back :)</p>
+                  <h1 className="text-4xl min-w-5xl font-mono text-black mb-2 tracking-tight">Your Accelerated Research Partner</h1>
+                  <p className="text-md text-amber-900 font-medium max-w-2xl mx-auto leading-relaxed">
+                    Bring your explorations to life. What do you want to research?
                   </p>
                 </div>
                 <form onSubmit={handleSubmit} className="w-full max-w-[704px] mx-4">
@@ -330,7 +330,7 @@ export default function Home() {
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
                       placeholder="Ask a question..."
-                      className="w-full p-5 pr-32 rounded-xl border-2 border-transparent focus:border-gray-900 focus:shadow-lg focus:outline-none resize-none h-[92px] bg-gray-50 transition-all duration-200"
+                      className="w-full p-5 pr-32  text-black rounded-xl border-2 border-transparent focus:border-gray-900 focus:shadow-lg focus:outline-none resize-none h-[92px] bg-gray-50 transition-all duration-200"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
@@ -342,7 +342,7 @@ export default function Home() {
                       <button
                         type="submit"
                         disabled={isLoading}
-                        className="px-6 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium relative overflow-hidden group"
+                        className="px-6 py-2.5 bg-black text-white rounded-lg hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium relative overflow-hidden group"
                       >
                         <span className="relative z-10">{isLoading ? 'Thinking...' : 'Send'}</span>
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:via-white/15 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
@@ -358,8 +358,8 @@ export default function Home() {
                         onClick={() => handleSuggestionClick(suggestion)}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                           selectedSuggestion === suggestion.label
-                            ? 'bg-gray-900 text-white'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            ? 'bg-black text-white'
+                            : 'bg-gray-100 text-black hover:bg-gray-200'
                         }`}
                       >
                         {suggestion.label}
@@ -379,7 +379,7 @@ export default function Home() {
                   <div key={index} className="pt-8 border-b border-gray-200 last:border-0">
                     {/* Query */}
                     <div className="mb-8">
-                      <p className="text-lg text-gray-800">
+                      <p className="text-lg text-black">
                         {section.query}
                       </p>
                     </div>
@@ -732,12 +732,12 @@ export default function Home() {
       {hasSubmitted && (
         <div className="fixed bottom-6 left-0 right-0 flex justify-center">
           <form onSubmit={handleSubmit} className="w-full max-w-[704px] mx-4">
-            <div className="relative bg-gray-50 rounded-xl shadow-md border border-gray-300">
+            <div className="relative bg-gray-50 text-black rounded-xl shadow-md border border-gray-300">
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask a question..."
-                className="w-full p-5 pr-32 rounded-xl border-2 border-transparent focus:border-gray-900 focus:shadow-lg focus:outline-none resize-none h-[92px] bg-gray-50 transition-all duration-200"
+                className="w-full p-5 pr-32 text-black rounded-xl  border-2 border-transparent focus:border-gray-900 focus:shadow-lg focus:outline-none resize-none h-[92px] transition-all duration-200"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
