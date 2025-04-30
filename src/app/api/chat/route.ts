@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const GEMINI_API_KEY=process.env.GEMINI_API_KEY
+const GEMINI_API_KEY=process.env.GEMINI_API_KEY!
 //const DEEPSEEK_API_URL='https://api.deepseek.com/chat/completions';
 
 if (!GEMINI_API_KEY) {
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
         'Authorization': `Bearer ${GEMINI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-2.0-flash-thinking-exp-1219:free",
+        model: "google/learnlm-1.5-pro-experimental:free",
         messages: messages,
         stream: true,
         max_tokens: 4000,

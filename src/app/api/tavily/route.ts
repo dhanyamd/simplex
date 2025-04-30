@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const TAVILY_API_KEY=process.env.TAVILY_API_KEY as string
+const TAVILY_API_KEY=process.env.TAVILLY_API_KEY!
 
 const TAVILY_API_URL='https://api.tavily.com/search';
 

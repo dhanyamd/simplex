@@ -54,8 +54,8 @@ interface SuggestionType {
 // Add TopBar component
 const TopBar = () => {
   return (
-    <div className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 flex items-center px-6 z-50">
-      <h1 className="text-2xl font-mono text-[#782dd4] tracking-tight">&#10022; Simplex </h1>
+    <div className="fixed top-0 left-0 right-0 h-16 bg-[#0a0a0a] border-b border-gray-900 flex items-center px-6 z-50">
+      <h1 className="text-2xl font-mono text-indigo-400 tracking-tight">&#10022; Simplex </h1>
     </div>
   );
 };
@@ -249,7 +249,7 @@ export default function Home() {
                 updated[sectionIndex] = {
                   ...updated[sectionIndex],
                   response: newContent
-                };
+                }
                 return updated;
               });
             }
@@ -284,7 +284,7 @@ export default function Home() {
             isLoadingThinking: false
           };
           return updated;
-        });
+        })
       }
     } finally {
       setIsLoading(false);
@@ -301,11 +301,13 @@ export default function Home() {
         isReasoningCollapsed: !updated[index].isReasoningCollapsed
       };
       return updated;
-    });
+    })
+    setIsLoading(false)
+
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#0a0a0a] text-white">
       <TopBar />
       <div className="pt-14 pb-24"> {/* Add padding top to account for fixed header */}
         <main className="max-w-3xl mx-auto p-8">
@@ -317,20 +319,20 @@ export default function Home() {
                 exit={{ opacity: 0, y: -50 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className="text-center mb-12 text-emerald-700">
+                <div className="text-center mb-12 text-emerald-400">
                   <p className='text-sm pb-4'>welcome back :)</p>
-                  <h1 className="text-4xl min-w-5xl font-mono text-black mb-2 tracking-tight">Your Accelerated Research Partner</h1>
-                  <p className="text-md text-amber-900 font-medium max-w-2xl mx-auto leading-relaxed">
+                  <h1 className="text-4xl min-w-5xl font-mono text-white mb-2 tracking-tight">Your Accelerated Research Partner</h1>
+                  <p className="text-md text-fuchsia-500 font-medium max-w-2xl mx-auto leading-relaxed">
                     Bring your explorations to life. What do you want to research?
                   </p>
                 </div>
                 <form onSubmit={handleSubmit} className="w-full max-w-[704px] mx-4">
-                  <div className="relative bg-gray-50 rounded-xl shadow-md border border-gray-300">
+                  <div className="relative bg-[#18181b] rounded-xl shadow-md border border-gray-700">
                     <textarea
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
                       placeholder="Ask a question..."
-                      className="w-full p-5 pr-32  text-black rounded-xl border-2 border-transparent focus:border-gray-900 focus:shadow-lg focus:outline-none resize-none h-[92px] bg-gray-50 transition-all duration-200"
+                      className="w-full p-5 pr-32 text-white rounded-xl border-2 border-transparent focus:border-black focus:shadow-lg focus:outline-none resize-none h-[92px] bg-[#232326] transition-all duration-200"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
@@ -342,7 +344,7 @@ export default function Home() {
                       <button
                         type="submit"
                         disabled={isLoading}
-                        className="px-6 py-2.5 bg-black text-white rounded-lg hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium relative overflow-hidden group"
+                        className="px-6 py-2.5 bg-amber-950 text-white rounded-lg hover:bg-amber-950 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium relative overflow-hidden group"
                       >
                         <span className="relative z-10">{isLoading ? 'Thinking...' : 'Send'}</span>
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:via-white/15 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
@@ -358,8 +360,8 @@ export default function Home() {
                         onClick={() => handleSuggestionClick(suggestion)}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                           selectedSuggestion === suggestion.label
-                            ? 'bg-black text-white'
-                            : 'bg-gray-100 text-black hover:bg-gray-200'
+                            ? 'bg-violet-600 text-white'
+                            : 'bg-black text-white hover:bg-[#18181b]'
                         }`}
                       >
                         {suggestion.label}
@@ -376,10 +378,10 @@ export default function Home() {
                 transition={{ duration: 0.3 }}
               >
                 {chatSections.map((section, index) => (
-                  <div key={index} className="pt-8 border-b border-gray-200 last:border-0">
+                  <div key={index} className="pt-8 border-b border-gray-700 last:border-0">
                     {/* Query */}
                     <div className="mb-8">
-                      <p className="text-lg text-black">
+                      <p className="text-lg text-white">
                         {section.query}
                       </p>
                     </div>
@@ -419,11 +421,11 @@ export default function Home() {
                     )}
 
                     {/* Sources Loading State */}
-                    {section.isLoadingSources && (
+                    {section.isLoadingSources  && (
                       <div className="mb-12 animate-pulse">
                         <div className="flex items-center gap-2 mb-4">
-                          <div className="w-5 h-5 bg-gray-200 rounded" />
-                          <div className="h-4 w-20 bg-gray-200 rounded" />
+                          <div className="w-5 h-5 bg-black rounded" />
+                          <div className="h-4 w-20 bg-black rounded" />
                         </div>
                         <div className="flex gap-3 overflow-x-auto pb-4">
                           {[1, 2, 3].map((_, idx) => (
@@ -471,12 +473,12 @@ export default function Home() {
                           {section.searchResults.map((result, idx) => (
                             <div 
                               key={idx}
-                              className="flex-shrink-0 w-[300px] bg-gray-50 border border-gray-200 rounded-xl overflow-hidden"
+                              className="flex-shrink-0 w-[300px] bg-white border border-gray-200 rounded-xl overflow-hidden"
                             >
-                              <div className="h-40 bg-gray-200 overflow-hidden relative">
+                              <div className="h-40 bg-black overflow-hidden relative">
                                 {result.image ? (
                                   <>
-                                    <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+                                    <div className="absolute inset-0 bg-black animate-pulse" />
                                     <img 
                                       src={result.image.url} 
                                       alt={result.image.description || result.title}
@@ -490,7 +492,7 @@ export default function Home() {
                                   </>
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center">
-                                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
                                   </div>
@@ -514,7 +516,7 @@ export default function Home() {
                     )}
 
                     {/* Thinking Process Loading State */}
-                    {section.isLoadingThinking==true && (
+                    {section.isLoadingThinking==false && (
                       <div className="mb-12">
                         <div className="flex items-center gap-2 mb-4">
                           <div className="w-5 h-5 bg-gray-200 rounded" />
@@ -577,7 +579,7 @@ export default function Home() {
                           }}
                           transition={{ duration: 0.3 }}
                         >
-                          <div className="text-sm text-gray-600 leading-relaxed overflow-hidden">
+                          <div className="text-sm text-white leading-relaxed overflow-hidden">
                             {section.reasoning}
                           </div>
                         </motion.div>
@@ -586,31 +588,31 @@ export default function Home() {
 
                     {/* Final Report */}
                     {section.response && (
-                      <div className="mt-12 mb-16">
-                        <div className="prose prose-blue max-w-none space-y-4 text-gray-800 [&>ul]:list-disc [&>ul]:pl-6 [&>ol]:list-decimal [&>ol]:pl-6">
+                      <div className="mt-12 mb-16"> 
+                        <div className="prose prose-blue max-w-none space-y-4 text-white [&>ul]:list-disc [&>ul]:pl-6 [&>ol]:list-decimal [&>ol]:pl-6">
                           <ReactMarkdown
                             remarkPlugins={[remarkGfm]}
                             components={{
                               table: ({ node, ...props }) => (
-                                <div className="my-8 overflow-x-auto rounded-lg border border-gray-200">
+                                <div className="my-8 overflow-x-auto rounded-lg border border-white">
                                   <table className="w-full text-left border-collapse" {...props} />
                                 </div>
                               ),
                               thead: ({ node, ...props }) => (
-                                <thead className="bg-gray-50" {...props} />
+                                <thead className="bg-black " {...props} />
                               ),
                               tbody: ({ node, ...props }) => (
-                                <tbody className="bg-white divide-y divide-gray-200" {...props} />
+                                <tbody className="bg-black divide-y divide-gray-200" {...props} />
                               ),
                               tr: ({ node, ...props }) => (
                                 <tr 
-                                  className="hover:bg-gray-50 transition-colors" 
+                                  className="hover:bg-black transition-colors" 
                                   {...props} 
                                 />
                               ),
                               th: ({ node, ...props }) => (
                                 <th 
-                                  className="py-3 px-4 font-medium text-sm text-gray-900 border-b border-gray-200" 
+                                  className="py-3 px-4 font-medium text-sm text-white border-b border-gray-200" 
                                   {...props} 
                                 />
                               ),
@@ -619,7 +621,7 @@ export default function Home() {
                                 const content = props.children?.toString() || '';
                                 if (content.match(/\[.*?\]\(.*?\)/)) {
                                   return (
-                                    <td className="py-3 px-4 text-sm text-gray-500">
+                                    <td className="py-3 px-4 text-sm text-white">
                                       <ReactMarkdown
                                         components={{
                                           a: ({ node, ...linkProps }) => (
@@ -732,12 +734,12 @@ export default function Home() {
       {hasSubmitted && (
         <div className="fixed bottom-6 left-0 right-0 flex justify-center">
           <form onSubmit={handleSubmit} className="w-full max-w-[704px] mx-4">
-            <div className="relative bg-gray-50 text-black rounded-xl shadow-md border border-gray-300">
+            <div className="relative  text-black rounded-xl shadow-md border border-gray-100">
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask a question..."
-                className="w-full p-5 pr-32 text-black rounded-xl  border-2 border-transparent focus:border-gray-900 focus:shadow-lg focus:outline-none resize-none h-[92px] transition-all duration-200"
+                className="w-full p-5 pr-32 text-white rounded-xl bg-black  border-2 border-transparent focus:border-gray-900 focus:shadow-lg focus:outline-none resize-none h-[92px] transition-all duration-200"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -749,7 +751,7 @@ export default function Home() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="px-6 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium relative overflow-hidden group"
+                  className="px-6 py-2.5 bg-amber-950 text-white rounded-lg hover:bg-amber-950 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium relative overflow-hidden group"
                 >
                   <span className="relative z-10">{isLoading ? 'Thinking...' : 'Send'}</span>
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:via-white/15 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
