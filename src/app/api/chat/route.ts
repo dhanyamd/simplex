@@ -75,6 +75,7 @@ export async function POST(req: Request) {
               }
               try {
                 const parsed = JSON.parse(data);
+                console.log('Parsed JSON:', parsed);
                 controller.enqueue(encoder.encode(JSON.stringify(parsed) + '\n'));
               } catch (e) {
                 console.error('Error parsing JSON:', e);
