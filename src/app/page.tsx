@@ -309,12 +309,12 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
       <TopBar />
-      <div className="pt-14 pb-24"> {/* Add padding top to account for fixed header */}
+      <div className="pt-14 pb-24">
         <main className="max-w-3xl mx-auto p-8">
           <AnimatePresence>
             {!hasSubmitted ? (
               <motion.div 
-                className="min-h-screen flex flex-col items-center justify-center"
+                className="mt-8 flex flex-col items-center"
                 initial={{ opacity: 1 }}
                 exit={{ opacity: 0, y: -50 }}
                 transition={{ duration: 0.3 }}
