@@ -4,7 +4,7 @@ const GEMINI_API_KEY=process.env.GEMINI_API_KEY!
 //const DEEPSEEK_API_URL='https://api.deepseek.com/chat/completions';
 
 if (!GEMINI_API_KEY) {
-  throw new Error('GEMMA_API_KEY is not set in environment variables');
+  throw new Error('GEMINI_API_KEY is not set in environment variables');
 }
 
 // Set response timeout to 30 seconds
