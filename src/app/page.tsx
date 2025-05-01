@@ -314,7 +314,7 @@ export default function Home() {
           <AnimatePresence>
             {!hasSubmitted ? (
               <motion.div 
-                className="min-h-screen flex flex-col items-center justify-center"
+                className="mt-8 flex flex-col items-center justify-center"
                 initial={{ opacity: 1 }}
                 exit={{ opacity: 0, y: -50 }}
                 transition={{ duration: 0.3 }}
