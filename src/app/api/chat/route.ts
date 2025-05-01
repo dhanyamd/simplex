@@ -4,7 +4,7 @@ const GEMINI_API_KEY=process.env.GEMINI_API_KEY!
 //const DEEPSEEK_API_URL='https://api.deepseek.com/chat/completions';
 
 if (!GEMINI_API_KEY) {
-  throw new Error('GEMINI_API_KEY is not set in environment variables');
+  throw new Error('GEMMA_API_KEY is not set in environment variables');
 }
 
 // Set response timeout to 30 seconds
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
         'Authorization': `Bearer ${GEMINI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "google/learnlm-1.5-pro-experimental:free",
+        model: "google/gemini-2.0-flash-exp:free",
         messages: messages,
         stream: true,
         max_tokens: 4000,
