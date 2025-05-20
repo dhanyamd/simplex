@@ -26,7 +26,7 @@ export async function POST(req: Request) {
         
       },
       body: JSON.stringify({
-        model: "google/gemini-2.0-flash-exp:free",
+        model: "deepseek/deepseek-prover-v2:free",
         messages: messages,
         stream: true,
         max_tokens: 4000,
