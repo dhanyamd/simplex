@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const GEMINI_API_KEY=process.env.GEMINI_API_KEY!
+const GEMINI_API_KEY=process.env.GEMINI_API_KEY
 //const DEEPSEEK_API_URL='https://api.deepseek.com/chat/completions';
 
 if (!GEMINI_API_KEY) {
@@ -25,8 +25,9 @@ export async function POST(req: Request) {
         'Authorization': `Bearer ${GEMINI_API_KEY}`,
         
       },
+      //deepseek/deepseek-r1:free
       body: JSON.stringify({
-        model: "deepseek/deepseek-prover-v2:free",
+        model: "deepseek/deepseek-r1:free",
         messages: messages,
         stream: true,
         max_tokens: 4000,
