@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 
-const GEMINI_API_KEY=process.env.GEMINI_API_KEY
+const DEEPSEEK_API_KEY=process.env.DEEPSEEK_API_KEY
 //const DEEPSEEK_API_URL='https://api.deepseek.com/chat/completions';
 
-if (!GEMINI_API_KEY) {
+if (!DEEPSEEK_API_KEY) {
   throw new Error('GEMMA_API_KEY is not set in environment variables');
 }
 
@@ -22,8 +22,7 @@ export async function POST(req: Request) {
       method: "POST",
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${GEMINI_API_KEY}`,
-        
+        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
       },
       //deepseek/deepseek-r1:free
       body: JSON.stringify({
