@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 
-const DEEPSEEK_API_KEY=process.env.DEEPSEEK_API_KEY
+const ZLM_API_KEY=process.env.ZLM_API_KEY 
 //const DEEPSEEK_API_URL='https://api.deepseek.com/chat/completions';
 
-if (!DEEPSEEK_API_KEY) {
+if (!ZLM_API_KEY) {
   throw new Error('GEMMA_API_KEY is not set in environment variables');
 }
 
@@ -22,11 +22,11 @@ export async function POST(req: Request) {
       method: "POST",
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+        'Authorization': `Bearer ${ZLM_API_KEY}`,
       },
       //deepseek/deepseek-r1:free
       body: JSON.stringify({
-        model: "deepseek/deepseek-r1:free",
+        model:"z-ai/glm-4.5-air:free",
         messages: messages,
         stream: true,
         max_tokens: 4000,
